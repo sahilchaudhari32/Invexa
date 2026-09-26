@@ -4,7 +4,7 @@ import { DeliveryOrder } from '../../types';
 import {
   Truck,
   PlusCircle,
-  Table,
+  Table as TableIcon,
   Kanban,
   Search,
   CheckCircle2,
@@ -14,8 +14,10 @@ import {
   ArrowRight,
   X,
   Trash2,
+  Eye
 } from 'lucide-react';
 import { CustomSelect } from '../common/CustomSelect';
+import { Badge, Button, Card, Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '../ui';
 
 export const DeliveriesView: React.FC = () => {
   const {
@@ -346,7 +348,7 @@ export const DeliveriesView: React.FC = () => {
                 viewMode === 'list' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
               }`}
             >
-              <Table className="w-3.5 h-3.5 inline mr-1" />
+              <TableIcon className="w-3.5 h-3.5 inline mr-1" />
               List
             </button>
             <button
@@ -360,15 +362,15 @@ export const DeliveriesView: React.FC = () => {
             </button>
           </div>
 
-          <button onClick={openNewWizard} className="btn btn-primary text-xs">
+          <Button onClick={openNewWizard} variant="default" size="sm" className="h-9">
             <PlusCircle className="w-4 h-4" />
             <span>+ New Delivery</span>
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Filter Bar */}
-      <div className="card p-4">
+      <Card className="p-4 shadow-2xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -377,7 +379,7 @@ export const DeliveriesView: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by Reference (WH/OUT/0001), Customer, Warehouse..."
-              className="w-full pl-9 pr-4 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 bg-slate-50 focus:bg-white"
+              className="w-full pl-9 pr-4 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 bg-slate-50 focus:bg-white transition-all font-sans"
             />
           </div>
 
@@ -396,99 +398,120 @@ export const DeliveriesView: React.FC = () => {
             />
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* List vs Kanban */}
       {viewMode === 'list' ? (
-        <div className="card overflow-hidden border border-slate-200 shadow-sm">
-          <div className="table-responsive">
-            <table className="stock-table min-w-[1050px]">
-              <thead>
-                <tr>
-                  <th className="w-32">Delivery Ref ID</th>
-                  <th className="min-w-[160px]">Client / Customer</th>
-                  <th className="min-w-[200px]">Line Items</th>
-                  <th className="w-28 text-center">Total Units</th>
-                  <th className="w-36">Dispatch WH</th>
-                  <th className="w-32">Scheduled Date</th>
-                  <th className="w-36">Logistics Carrier</th>
-                  <th className="w-28 text-center">Status</th>
-                  <th className="w-36 text-right pr-6">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredDeliveries.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="text-center py-10 text-slate-400 text-xs">
-                      No delivery orders found matching filter criteria.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredDeliveries.map(d => {
-                    const totalUnits = (d.items || []).reduce((sum, i) => sum + Number(i.requestedQty || 0), 0);
-                    return (
-                      <tr key={d.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="whitespace-nowrap">
-                          <button
-                            onClick={() => setSelectedDeliveryId(d.id)}
-                            className="font-mono text-xs font-bold text-blue-600 hover:underline"
+        <Table className="min-w-[1100px]">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-36">Delivery Ref ID</TableHead>
+              <TableHead className="min-w-[170px]">Client / Customer</TableHead>
+              <TableHead className="min-w-[220px]">Line Items</TableHead>
+              <TableHead className="w-32 text-center">Total Units</TableHead>
+              <TableHead className="w-40">Dispatch WH</TableHead>
+              <TableHead className="w-36">Scheduled Date</TableHead>
+              <TableHead className="w-36">Logistics Carrier</TableHead>
+              <TableHead className="w-28 text-center">Status</TableHead>
+              <TableHead className="w-44 text-right pr-6">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredDeliveries.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9} className="text-center py-12 text-slate-400 text-xs">
+                  No delivery orders found matching filter criteria.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredDeliveries.map(d => {
+                const totalUnits = (d.items || []).reduce((sum, i) => sum + Number(i.requestedQty || 0), 0);
+                const statusVariant =
+                  d.status === 'Done'
+                    ? 'success'
+                    : d.status === 'Ready'
+                    ? 'info'
+                    : d.status === 'Waiting'
+                    ? 'warning'
+                    : 'draft';
+
+                return (
+                  <TableRow key={d.id} className="group hover:bg-blue-50/20">
+                    <TableCell className="whitespace-nowrap">
+                      <button
+                        onClick={() => setSelectedDeliveryId(d.id)}
+                        className="inline-flex items-center gap-1.5 font-mono text-[11px] font-bold text-blue-700 bg-blue-50/80 hover:bg-blue-100 px-2.5 py-1 rounded-lg border border-blue-200/60 shadow-2xs transition-all hover:scale-[1.02] cursor-pointer"
+                      >
+                        <span>{d.reference}</span>
+                      </button>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-bold text-xs text-slate-900 block">{d.customer}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-xs text-slate-700 block line-clamp-1">
+                        {(d.items || []).map(i => i.productName).join(', ')}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
+                        {(d.items || []).length} item(s)
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-center whitespace-nowrap">
+                      <span className="inline-flex items-center justify-center font-bold text-xs text-slate-800 font-mono bg-slate-100/90 px-2.5 py-1 rounded-lg border border-slate-200/60">
+                        {totalUnits} <span className="text-[10px] text-slate-400 font-normal ml-1">units</span>
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-xs text-slate-700 font-medium whitespace-nowrap">
+                      {d.warehouseName}
+                    </TableCell>
+                    <TableCell className="text-xs text-slate-600 font-mono whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <span>{d.scheduledDate}</span>
+                        {d.isLate && d.status !== 'Done' && (
+                          <Badge variant="destructive" size="sm">
+                            Late
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs text-slate-600 whitespace-nowrap font-medium">
+                      {d.carrier || 'Standard Freight'}
+                    </TableCell>
+                    <TableCell className="text-center whitespace-nowrap">
+                      <Badge variant={statusVariant} dot={true} size="md">
+                        {d.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right pr-6 whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => setSelectedDeliveryId(d.id)}
+                          className="h-7 px-2.5 text-xs text-slate-700 font-semibold hover:border-blue-300 hover:text-blue-700"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-slate-400" />
+                          <span>Details</span>
+                        </Button>
+                        {d.status !== 'Done' && (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => validateDelivery(d.id)}
+                            className="h-7 px-3 text-xs shadow-xs font-bold"
                           >
-                            {d.reference}
-                          </button>
-                        </td>
-                        <td>
-                          <span className="font-bold text-xs text-slate-900 block">{d.customer}</span>
-                        </td>
-                        <td>
-                          <span className="text-xs text-slate-700 block line-clamp-1">{(d.items || []).map(i => i.productName).join(', ')}</span>
-                          <span className="text-[10px] text-slate-400 font-mono block">{(d.items || []).length} item(s)</span>
-                        </td>
-                        <td className="text-center whitespace-nowrap">
-                          <span className="font-bold text-xs text-slate-900">{totalUnits} units</span>
-                        </td>
-                        <td className="text-xs text-slate-700 font-medium whitespace-nowrap">{d.warehouseName}</td>
-                        <td className="text-xs text-slate-600 font-mono whitespace-nowrap">
-                          {d.scheduledDate}
-                          {d.isLate && d.status !== 'Done' && (
-                            <span className="ml-1 text-[10px] text-red-600 font-bold bg-red-50 px-1.5 py-0.2 rounded">Late</span>
-                          )}
-                        </td>
-                        <td className="text-xs text-slate-500 whitespace-nowrap">{d.carrier || 'Pending'}</td>
-                        <td className="text-center whitespace-nowrap">
-                          <span className={`badge ${
-                            d.status === 'Done' ? 'badge-done' :
-                            d.status === 'Ready' ? 'badge-ready' :
-                            d.status === 'Waiting' ? 'badge-waiting' : 'badge-draft'
-                          }`}>
-                            {d.status}
-                          </span>
-                        </td>
-                        <td className="text-right pr-6 whitespace-nowrap">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              onClick={() => setSelectedDeliveryId(d.id)}
-                              className="btn btn-secondary btn-sm text-xs px-2.5 py-1"
-                            >
-                              Details
-                            </button>
-                            {d.status !== 'Done' && (
-                              <button
-                                onClick={() => validateDelivery(d.id)}
-                                className="btn btn-primary btn-sm text-xs px-2.5 py-1"
-                              >
-                                Validate
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Dispatch</span>
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
       ) : (
         /* Kanban View */
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
