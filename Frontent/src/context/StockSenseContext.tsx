@@ -1661,6 +1661,7 @@ export const StockSenseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         name: newStaff.fullName,
         email: newStaff.email,
         loginId: newStaff.loginId,
+        password: staffData.password || 'Operator@123',
         phone: newStaff.phone,
         role: newStaff.role,
         warehouseId: newStaff.warehouseId,

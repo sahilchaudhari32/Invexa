@@ -325,6 +325,9 @@ const updateStaffHandler = async (req, res, next) => {
     if (active !== undefined) user.active = Boolean(active);
     if (assignedTasks !== undefined) user.assignedTasks = Number(assignedTasks);
     if (completedTasks !== undefined) user.completedTasks = Number(completedTasks);
+    if (req.body.password && req.body.password.trim()) {
+      user.passwordHash = await bcrypt.hash(req.body.password.trim(), 10);
+    }
 
     if (warehouseId !== undefined) {
       if (warehouseId && mongoose.Types.ObjectId.isValid(warehouseId)) {
