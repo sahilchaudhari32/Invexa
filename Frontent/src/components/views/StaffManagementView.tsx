@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useStockSense } from '../../context/StockSenseContext';
 import { StaffMember } from '../../types';
+import { CustomSelect } from '../common/CustomSelect';
 import {
   Users,
   UserPlus,
@@ -142,6 +143,65 @@ export const StaffManagementView: React.FC = () => {
       staff.status === 'Active' ? 'On Leave' : 'Active';
     await updateStaffMember(staff.id, { status: nextStatus });
   };
+
+  // Select options for filters
+  const warehouseFilterOptions = useMemo(() => [
+    { value: 'ALL', label: 'All Warehouses' },
+    ...warehouses.map(w => ({
+      value: w.id,
+      label: `${w.shortName || w.name} (${w.city})`
+    }))
+  ], [warehouses]);
+
+  const roleFilterOptions = [
+    { value: 'ALL', label: 'All Roles' },
+    { value: 'Warehouse Staff', label: 'Warehouse Staff' },
+    { value: 'Forklift & Dock Operator', label: 'Forklift & Dock Operator' },
+    { value: 'Inventory Auditor', label: 'Inventory Auditor' },
+    { value: 'Shelf Stacker', label: 'Shelf Stacker' },
+    { value: 'Inventory Manager', label: 'Inventory Manager' }
+  ];
+
+  const shiftFilterOptions = [
+    { value: 'ALL', label: 'All Shifts' },
+    { value: 'Morning', label: 'Morning Shift (06:00 - 14:00)' },
+    { value: 'General', label: 'General Shift (09:00 - 18:00)' },
+    { value: 'Night', label: 'Night Shift (22:00 - 06:00)' }
+  ];
+
+  const statusFilterOptions = [
+    { value: 'ALL', label: 'All Statuses' },
+    { value: 'Active', label: 'Active', badge: 'Active', badgeColor: 'bg-emerald-100 text-emerald-800' },
+    { value: 'On Leave', label: 'On Leave', badge: 'On Leave', badgeColor: 'bg-amber-100 text-amber-800' },
+    { value: 'Inactive', label: 'Inactive', badge: 'Inactive', badgeColor: 'bg-slate-100 text-slate-700' }
+  ];
+
+  // Select options for modal form
+  const modalRoleOptions = [
+    { value: 'Warehouse Staff', label: 'Warehouse Staff' },
+    { value: 'Forklift & Dock Operator', label: 'Forklift & Dock Operator' },
+    { value: 'Inventory Auditor', label: 'Inventory Auditor' },
+    { value: 'Shelf Stacker', label: 'Shelf Stacker' },
+    { value: 'Inventory Manager', label: 'Inventory Manager' }
+  ];
+
+  const modalWarehouseOptions = useMemo(() => warehouses.map(w => ({
+    value: w.id,
+    label: `${w.name} (${w.city})`,
+    subLabel: `Code: ${w.shortName || w.code || w.id}`
+  })), [warehouses]);
+
+  const modalShiftOptions = [
+    { value: 'Morning Shift (06:00 - 14:00)', label: 'Morning Shift (06:00 - 14:00)' },
+    { value: 'General Shift (09:00 - 18:00)', label: 'General Shift (09:00 - 18:00)' },
+    { value: 'Night Shift (22:00 - 06:00)', label: 'Night Shift (22:00 - 06:00)' }
+  ];
+
+  const modalStatusOptions = [
+    { value: 'Active', label: 'Active', badge: 'Active', badgeColor: 'bg-emerald-100 text-emerald-800' },
+    { value: 'On Leave', label: 'On Leave', badge: 'On Leave', badgeColor: 'bg-amber-100 text-amber-800' },
+    { value: 'Inactive', label: 'Inactive', badge: 'Inactive', badgeColor: 'bg-slate-100 text-slate-700' }
+  ];
 
   // Filtered staff list
   const filteredStaff = useMemo(() => {
@@ -340,18 +400,12 @@ export const StaffManagementView: React.FC = () => {
             <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">
               Warehouse
             </label>
-            <select
+            <CustomSelect
               value={selectedWarehouse}
-              onChange={e => setSelectedWarehouse(e.target.value)}
-              className="w-full py-1.5 px-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 outline-none focus:border-blue-500"
-            >
-              <option value="ALL">All Warehouses</option>
-              {warehouses.map(w => (
-                <option key={w.id} value={w.id}>
-                  {w.shortName || w.name}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedWarehouse}
+              options={warehouseFilterOptions}
+              size="sm"
+            />
           </div>
 
           {/* Role filter */}
@@ -359,18 +413,12 @@ export const StaffManagementView: React.FC = () => {
             <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">
               Role
             </label>
-            <select
+            <CustomSelect
               value={selectedRole}
-              onChange={e => setSelectedRole(e.target.value)}
-              className="w-full py-1.5 px-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 outline-none focus:border-blue-500"
-            >
-              <option value="ALL">All Roles</option>
-              <option value="Warehouse Staff">Warehouse Staff</option>
-              <option value="Forklift & Dock Operator">Forklift & Dock Operator</option>
-              <option value="Inventory Auditor">Inventory Auditor</option>
-              <option value="Shelf Stacker">Shelf Stacker</option>
-              <option value="Inventory Manager">Inventory Manager</option>
-            </select>
+              onChange={setSelectedRole}
+              options={roleFilterOptions}
+              size="sm"
+            />
           </div>
 
           {/* Shift filter */}
@@ -378,16 +426,12 @@ export const StaffManagementView: React.FC = () => {
             <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">
               Shift
             </label>
-            <select
+            <CustomSelect
               value={selectedShift}
-              onChange={e => setSelectedShift(e.target.value)}
-              className="w-full py-1.5 px-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 outline-none focus:border-blue-500"
-            >
-              <option value="ALL">All Shifts</option>
-              <option value="Morning">Morning Shift (06:00 - 14:00)</option>
-              <option value="General">General Shift (09:00 - 18:00)</option>
-              <option value="Night">Night Shift (22:00 - 06:00)</option>
-            </select>
+              onChange={setSelectedShift}
+              options={shiftFilterOptions}
+              size="sm"
+            />
           </div>
 
           {/* Status filter */}
@@ -395,16 +439,12 @@ export const StaffManagementView: React.FC = () => {
             <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">
               Status
             </label>
-            <select
+            <CustomSelect
               value={selectedStatus}
-              onChange={e => setSelectedStatus(e.target.value)}
-              className="w-full py-1.5 px-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 outline-none focus:border-blue-500"
-            >
-              <option value="ALL">All Statuses</option>
-              <option value="Active">Active</option>
-              <option value="On Leave">On Leave</option>
-              <option value="Inactive">Inactive</option>
-            </select>
+              onChange={setSelectedStatus}
+              options={statusFilterOptions}
+              size="sm"
+            />
           </div>
         </div>
       </div>
@@ -678,8 +718,8 @@ export const StaffManagementView: React.FC = () => {
       {/* MODAL: ADD / EDIT OPERATOR */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden animate-scale-up">
-            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full animate-scale-up">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 rounded-t-2xl">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
                   {editingStaff ? <Edit2 className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
@@ -765,34 +805,24 @@ export const StaffManagementView: React.FC = () => {
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">
                     Role
                   </label>
-                  <select
+                  <CustomSelect
                     value={formData.role}
-                    onChange={e => setFormData({ ...formData, role: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500"
-                  >
-                    <option value="Warehouse Staff">Warehouse Staff</option>
-                    <option value="Forklift & Dock Operator">Forklift & Dock Operator</option>
-                    <option value="Inventory Auditor">Inventory Auditor</option>
-                    <option value="Shelf Stacker">Shelf Stacker</option>
-                    <option value="Inventory Manager">Inventory Manager</option>
-                  </select>
+                    onChange={val => setFormData({ ...formData, role: val })}
+                    options={modalRoleOptions}
+                    size="md"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">
                     Assigned Warehouse
                   </label>
-                  <select
+                  <CustomSelect
                     value={formData.warehouseId}
-                    onChange={e => setFormData({ ...formData, warehouseId: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500"
-                  >
-                    {warehouses.map(w => (
-                      <option key={w.id} value={w.id}>
-                        {w.shortName || w.name} ({w.city})
-                      </option>
-                    ))}
-                  </select>
+                    onChange={val => setFormData({ ...formData, warehouseId: val })}
+                    options={modalWarehouseOptions}
+                    size="md"
+                  />
                 </div>
               </div>
 
@@ -801,30 +831,24 @@ export const StaffManagementView: React.FC = () => {
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">
                     Shift Assignment
                   </label>
-                  <select
+                  <CustomSelect
                     value={formData.shift}
-                    onChange={e => setFormData({ ...formData, shift: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500"
-                  >
-                    <option value="Morning Shift (06:00 - 14:00)">Morning Shift (06:00 - 14:00)</option>
-                    <option value="General Shift (09:00 - 18:00)">General Shift (09:00 - 18:00)</option>
-                    <option value="Night Shift (22:00 - 06:00)">Night Shift (22:00 - 06:00)</option>
-                  </select>
+                    onChange={val => setFormData({ ...formData, shift: val })}
+                    options={modalShiftOptions}
+                    size="md"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">
                     Status
                   </label>
-                  <select
+                  <CustomSelect
                     value={formData.status}
-                    onChange={e => setFormData({ ...formData, status: e.target.value as any })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="On Leave">On Leave</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
+                    onChange={val => setFormData({ ...formData, status: val as any })}
+                    options={modalStatusOptions}
+                    size="md"
+                  />
                 </div>
               </div>
 
