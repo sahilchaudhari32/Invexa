@@ -9,6 +9,10 @@ const UserSchema = new Schema(
       required: true,
       trim: true,
     },
+    fullName: {
+      type: String,
+      trim: true,
+    },
     email: {
       type: String,
       required: true,
@@ -22,8 +26,7 @@ const UserSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ['manager', 'staff', 'Inventory Manager', 'Warehouse Staff', 'Admin'],
-      default: 'manager',
+      default: 'staff',
       required: true,
     },
     loginId: {
@@ -39,7 +42,17 @@ const UserSchema = new Schema(
     department: {
       type: String,
       trim: true,
-      default: 'Supply Chain Operations',
+      default: 'Floor Operations & Logistics',
+    },
+    shift: {
+      type: String,
+      trim: true,
+      default: 'Morning Shift (06:00 - 14:00)',
+    },
+    status: {
+      type: String,
+      enum: ['Active', 'On Leave', 'Inactive'],
+      default: 'Active',
     },
     avatar: {
       type: String,
@@ -49,12 +62,37 @@ const UserSchema = new Schema(
       type: String,
       default: '',
     },
+    warehouseId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Warehouse',
+      default: null,
+    },
+    warehouseName: {
+      type: String,
+      default: '',
+    },
     assignedWarehouses: [
       {
         type: Schema.Types.ObjectId,
         ref: 'Warehouse',
       },
     ],
+    joinedDate: {
+      type: String,
+      default: '',
+    },
+    lastActive: {
+      type: String,
+      default: 'Active now',
+    },
+    assignedTasks: {
+      type: Number,
+      default: 0,
+    },
+    completedTasks: {
+      type: Number,
+      default: 0,
+    },
     mustChangePassword: {
       type: Boolean,
       default: false,

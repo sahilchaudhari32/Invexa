@@ -273,4 +273,43 @@ export const api = {
     const qs = params ? `?${new URLSearchParams(params).toString()}` : '';
     return request<{ data: any[]; nextCursor: string | null; hasMore: boolean }>(`/move-history${qs}`);
   },
+
+  // Staff Management (Manager / Admin)
+  getStaffMembers: (params?: Record<string, string>) => {
+    const qs = params ? `?${new URLSearchParams(params).toString()}` : '';
+    return request<{ data: any[]; count: number }>(`/staff${qs}`);
+  },
+  getStaffMember: (id: string) => request<any>(`/staff/${id}`),
+  createStaffMember: (body: Record<string, unknown>) =>
+    request<any>('/staff', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  updateStaffMember: (id: string, body: Record<string, unknown>) =>
+    request<any>(`/staff/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    }),
+  toggleStaffStatus: (id: string) =>
+    request<any>(`/staff/${id}/toggle-status`, {
+      method: 'PATCH',
+    }),
+  deleteStaffMember: (id: string) =>
+    request<{ message: string; id: string }>(`/staff/${id}`, {
+      method: 'DELETE',
+    }),
+
+  // Notifications & Alerts
+  getNotifications: (params?: Record<string, string>) => {
+    const qs = params ? `?${new URLSearchParams(params).toString()}` : '';
+    return request<{ data: any[]; unreadCount: number }>(`/notifications${qs}`);
+  },
+  markNotificationRead: (id: string) =>
+    request<any>(`/notifications/${id}/read`, {
+      method: 'PATCH',
+    }),
+  markAllNotificationsRead: () =>
+    request<any>('/notifications/read-all', {
+      method: 'PATCH',
+    }),
 };
