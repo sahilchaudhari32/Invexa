@@ -1651,7 +1651,8 @@ export const StockSenseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       joinedDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
       lastActive: 'Just registered',
       assignedTasks: 0,
-      completedTasks: 0
+      completedTasks: 0,
+      createdBy: currentUser?.id || 'alex.manager',
     };
 
     try {

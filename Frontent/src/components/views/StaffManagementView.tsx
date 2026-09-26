@@ -184,8 +184,7 @@ export const StaffManagementView: React.FC = () => {
     { value: 'Warehouse Staff', label: 'Warehouse Staff' },
     { value: 'Forklift & Dock Operator', label: 'Forklift & Dock Operator' },
     { value: 'Inventory Auditor', label: 'Inventory Auditor' },
-    { value: 'Shelf Stacker', label: 'Shelf Stacker' },
-    { value: 'Inventory Manager', label: 'Inventory Manager' }
+    { value: 'Shelf Stacker', label: 'Shelf Stacker' }
   ];
 
   const shiftFilterOptions = [
@@ -207,8 +206,7 @@ export const StaffManagementView: React.FC = () => {
     { value: 'Warehouse Staff', label: 'Warehouse Staff' },
     { value: 'Forklift & Dock Operator', label: 'Forklift & Dock Operator' },
     { value: 'Inventory Auditor', label: 'Inventory Auditor' },
-    { value: 'Shelf Stacker', label: 'Shelf Stacker' },
-    { value: 'Inventory Manager', label: 'Inventory Manager' }
+    { value: 'Shelf Stacker', label: 'Shelf Stacker' }
   ];
 
   const modalWarehouseOptions = useMemo(() => warehouses.map(w => ({
@@ -229,9 +227,39 @@ export const StaffManagementView: React.FC = () => {
     { value: 'Inactive', label: 'Inactive', badge: 'Inactive', badgeColor: 'bg-slate-100 text-slate-700' }
   ];
 
+  // Base staff members belonging to this specific manager (strictly excluding managers and other managers' staff)
+  const myStaffMembers = useMemo(() => {
+    return (staffMembers || []).filter(staff => {
+      // Never show any manager or admin accounts in Staff Management
+      const roleLower = (staff.role || '').toLowerCase();
+      if (roleLower.includes('manager') || roleLower.includes('admin')) {
+        return false;
+      }
+
+      // If user is a manager, only show staff created by this manager (or unassigned/global seed staff)
+      if (currentUser) {
+        const currentUserId = currentUser.id || (currentUser as any)._id;
+        const currentLoginId = currentUser.loginId;
+        const currentEmail = currentUser.email;
+
+        if (staff.createdBy) {
+          const matchesCreator =
+            staff.createdBy === currentUserId ||
+            staff.createdBy === currentLoginId ||
+            staff.createdBy === currentEmail;
+          if (!matchesCreator) {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    });
+  }, [staffMembers, currentUser]);
+
   // Filtered staff list
   const filteredStaff = useMemo(() => {
-    return (staffMembers || []).filter(staff => {
+    return myStaffMembers.filter(staff => {
       const matchesSearch =
         staff.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         staff.loginId.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -247,13 +275,13 @@ export const StaffManagementView: React.FC = () => {
 
       return matchesSearch && matchesWh && matchesRole && matchesShift && matchesStatus;
     });
-  }, [staffMembers, searchTerm, selectedWarehouse, selectedRole, selectedShift, selectedStatus]);
+  }, [myStaffMembers, searchTerm, selectedWarehouse, selectedRole, selectedShift, selectedStatus]);
 
   // KPIs
-  const totalStaff = (staffMembers || []).length;
-  const activeStaff = (staffMembers || []).filter(s => s.status === 'Active').length;
-  const onLeaveStaff = (staffMembers || []).filter(s => s.status === 'On Leave').length;
-  const uniqueWarehouses = new Set((staffMembers || []).map(s => s.warehouseId)).size;
+  const totalStaff = myStaffMembers.length;
+  const activeStaff = myStaffMembers.filter(s => s.status === 'Active').length;
+  const onLeaveStaff = myStaffMembers.filter(s => s.status === 'On Leave').length;
+  const uniqueWarehouses = new Set(myStaffMembers.map(s => s.warehouseId)).size;
 
   // Export CSV
   const handleExportCSV = () => {

@@ -59,14 +59,15 @@ beforeEach(async () => {
 });
 
 describe('Staff Management API Suite', () => {
-  test('Manager can list staff members', async () => {
+  test('Manager can list staff members (excludes managers)', async () => {
     const res = await request(app)
       .get('/api/staff')
       .set('Authorization', `Bearer ${managerToken}`);
 
     expect(res.status).toBe(200);
     expect(res.body.data).toBeDefined();
-    expect(res.body.data.length).toBe(2);
+    expect(res.body.data.length).toBe(1);
+    expect(res.body.data[0].role).toBe('Warehouse Staff');
   });
 
   test('Manager can create a new staff operator', async () => {

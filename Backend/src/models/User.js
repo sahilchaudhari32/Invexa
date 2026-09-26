@@ -101,6 +101,11 @@ const UserSchema = new Schema(
       type: Boolean,
       default: true,
     },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
   },
   { timestamps: true }
 );

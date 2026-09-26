@@ -35,63 +35,87 @@ function formatStaffMember(u, warehouseMap = new Map()) {
     assignedTasks: u.assignedTasks || 0,
     completedTasks: u.completedTasks || 0,
     active: u.active !== false,
+    createdBy: u.createdBy ? u.createdBy.toString() : null,
   };
 }
 
 /**
  * GET /api/staff
- * Lists all staff operators and managers.
+ * Lists staff operators added by the requesting manager. Does not return managers.
  */
 router.get('/', requireAuth, async (req, res, next) => {
   try {
     const { search, warehouseId, role, shift, status, active } = req.query;
-    const filter = {};
+    const conditions = [];
+
+    // Strictly exclude any manager or admin accounts
+    conditions.push({
+      role: { $nin: ['manager', 'admin', 'inventory manager'] },
+    });
+
+    // Only show staff added by this particular manager (or global/unassigned seed staff)
+    if (req.user && req.user._id) {
+      conditions.push({
+        $or: [
+          { createdBy: req.user._id },
+          { createdBy: null },
+          { createdBy: { $exists: false } },
+        ],
+      });
+    }
 
     if (active === 'true') {
-      filter.active = true;
+      conditions.push({ active: true });
     } else if (active === 'false') {
-      filter.active = false;
+      conditions.push({ active: false });
     }
 
     if (status && status !== 'ALL') {
-      filter.status = status;
+      conditions.push({ status });
     }
 
     if (shift && shift !== 'ALL') {
-      filter.shift = shift;
+      conditions.push({ shift });
     }
 
     if (role && role !== 'ALL') {
-      filter.$or = [
-        { role },
-        { role: role.toLowerCase() },
-        { role: role.toLowerCase().includes('manager') ? 'manager' : 'staff' },
-      ];
+      conditions.push({
+        $or: [
+          { role },
+          { role: role.toLowerCase() },
+        ],
+      });
     }
 
     if (warehouseId && warehouseId !== 'ALL') {
       if (mongoose.Types.ObjectId.isValid(warehouseId)) {
-        filter.$or = [
-          { warehouseId: new mongoose.Types.ObjectId(warehouseId) },
-          { assignedWarehouses: new mongoose.Types.ObjectId(warehouseId) },
-        ];
+        conditions.push({
+          $or: [
+            { warehouseId: new mongoose.Types.ObjectId(warehouseId) },
+            { assignedWarehouses: new mongoose.Types.ObjectId(warehouseId) },
+          ],
+        });
       }
     }
 
     if (search) {
       const searchRegex = new RegExp(search.trim(), 'i');
-      filter.$or = [
-        { name: searchRegex },
-        { fullName: searchRegex },
-        { email: searchRegex },
-        { phone: searchRegex },
-        { loginId: searchRegex },
-        { department: searchRegex },
-      ];
+      conditions.push({
+        $or: [
+          { name: searchRegex },
+          { fullName: searchRegex },
+          { email: searchRegex },
+          { phone: searchRegex },
+          { loginId: searchRegex },
+          { department: searchRegex },
+        ],
+      });
     }
 
+    const finalFilter = conditions.length > 0 ? { $and: conditions } : {};
+
     const [users, warehouses] = await Promise.all([
-      User.find(filter).sort({ createdAt: -1 }).lean(),
+      User.find(finalFilter).sort({ createdAt: -1 }).lean(),
       Warehouse.find({}).lean(),
     ]);
 
@@ -200,7 +224,7 @@ router.post('/', requireAuth, requireRole('manager'), async (req, res, next) => 
       email: cleanEmail,
       loginId: loginId || cleanEmail.split('@')[0],
       passwordHash,
-      role: role.toLowerCase().includes('manager') ? 'manager' : 'staff',
+      role: 'staff',
       phone: phone || '',
       department: department || 'Floor Operations & Logistics',
       shift: shift || 'Morning Shift (06:00 - 14:00)',
@@ -215,6 +239,7 @@ router.post('/', requireAuth, requireRole('manager'), async (req, res, next) => 
       assignedTasks: 0,
       completedTasks: 0,
       active: status !== 'Inactive',
+      createdBy: req.user?._id || null,
     });
 
     return res.status(201).json({

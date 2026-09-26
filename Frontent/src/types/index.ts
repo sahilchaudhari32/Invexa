@@ -269,5 +269,6 @@ export interface StaffMember {
   lastActive?: string;
   assignedTasks?: number;
   completedTasks?: number;
+  createdBy?: string;
 }
 
