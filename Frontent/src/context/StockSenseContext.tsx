@@ -611,7 +611,7 @@ export const StockSenseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
 
     try {
-      const [prodsRes, whsRes, locsRes, catsRes, rcptsRes, delsRes, trfsRes, adjsRes, ledgRes, movsRes] = await Promise.allSettled([
+      const [prodsRes, whsRes, locsRes, catsRes, rcptsRes, delsRes, trfsRes, adjsRes, ledgRes, movsRes, staffRes, notifsRes] = await Promise.allSettled([
         api.getProducts(),
         api.getWarehouses(),
         api.getLocations(),
@@ -621,7 +621,9 @@ export const StockSenseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         api.getTransfers(),
         api.getAdjustments(),
         api.getLedger(),
-        api.getMoveHistory()
+        api.getMoveHistory(),
+        api.getStaffMembers(),
+        api.getNotifications()
       ]);
 
       setData(prev => {
@@ -846,6 +848,12 @@ export const StockSenseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           };
         });
 
+        const rawStaff = staffRes.status === 'fulfilled' && staffRes.value?.data ? staffRes.value.data : (staffRes.status === 'fulfilled' && Array.isArray(staffRes.value) ? staffRes.value : prev.staffMembers);
+        const staffMembers = Array.isArray(rawStaff) && rawStaff.length > 0 ? rawStaff : prev.staffMembers;
+
+        const rawNotifs = notifsRes.status === 'fulfilled' && notifsRes.value?.data ? notifsRes.value.data : (notifsRes.status === 'fulfilled' && Array.isArray(notifsRes.value) ? notifsRes.value : prev.notifications);
+        const notifications = Array.isArray(rawNotifs) && rawNotifs.length > 0 ? rawNotifs : prev.notifications;
+
         return {
           ...prev,
           products,
@@ -857,7 +865,9 @@ export const StockSenseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           transfers,
           adjustments,
           ledger,
-          moveHistory
+          moveHistory,
+          staffMembers,
+          notifications
         };
       });
     } catch (e) {
@@ -1641,8 +1651,31 @@ export const StockSenseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       joinedDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
       lastActive: 'Just registered',
       assignedTasks: 0,
-      completedTasks: 0
+      completedTasks: 0,
+      createdBy: currentUser?.id || 'alex.manager',
     };
+
+    try {
+      const res = await api.createStaffMember({
+        fullName: newStaff.fullName,
+        name: newStaff.fullName,
+        email: newStaff.email,
+        loginId: newStaff.loginId,
+        phone: newStaff.phone,
+        role: newStaff.role,
+        warehouseId: newStaff.warehouseId,
+        warehouseName: newStaff.warehouseName,
+        department: newStaff.department,
+        shift: newStaff.shift,
+        status: newStaff.status,
+        avatar: newStaff.avatar,
+      });
+      if (res && res.data) {
+        newStaff.id = res.data.id || res.data._id || newStaff.id;
+      }
+    } catch (e) {
+      console.warn('Backend staff creation note:', e);
+    }
 
     setData((prev: typeof INITIAL_DATA) => {
       const updated = {
@@ -1656,6 +1689,12 @@ export const StockSenseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const updateStaffMember = async (id: string, updates: Partial<StaffMember>) => {
+    try {
+      await api.updateStaffMember(id, updates);
+    } catch (e) {
+      console.warn('Backend staff update note:', e);
+    }
+
     setData((prev: typeof INITIAL_DATA) => {
       const updated = {
         ...prev,
@@ -1668,6 +1707,12 @@ export const StockSenseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const deleteStaffMember = async (id: string) => {
+    try {
+      await api.deleteStaffMember(id);
+    } catch (e) {
+      console.warn('Backend staff deletion note:', e);
+    }
+
     setData((prev: typeof INITIAL_DATA) => {
       const updated = {
         ...prev,
@@ -1680,6 +1725,10 @@ export const StockSenseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const markNotificationRead = (id: string) => {
+    try {
+      api.markNotificationRead(id).catch(() => {});
+    } catch (e) {}
+
     setData((prev: typeof INITIAL_DATA) => {
       const updated = {
         ...prev,

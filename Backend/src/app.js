@@ -15,33 +15,56 @@ const adjustmentsRouter = require('./routes/adjustments');
 const ledgerRouter = require('./routes/ledger');
 const dashboardRouter = require('./routes/dashboard');
 const adminRouter = require('./routes/admin');
+const staffRouter = require('./routes/staff');
+const notificationsRouter = require('./routes/notifications');
+const reorderRulesRouter = require('./routes/reorderRules');
 
 const app = express();
 
 // Global Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'StockSense Inventory Engine', timestamp: new Date().toISOString() });
-});
+// Health check endpoints
+const healthHandler = (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'Invexa / StockSense IMS Engine',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+  });
+};
+
+app.get('/health', healthHandler);
+app.get('/api/health', healthHandler);
+app.get('/api/v1/health', healthHandler);
+
+// Helper to mount routes on both /api and /api/v1
+function mount(path, router) {
+  app.use(`/api${path}`, router);
+  app.use(`/api/v1${path}`, router);
+}
 
 // API Routes
-app.use('/api/auth', authRouter);
-app.use('/api/setup', authRouter);
-app.use('/api/products', productsRouter);
-app.use('/api/warehouses', warehousesRouter);
-app.use('/api/locations', locationsRouter);
-app.use('/api/categories', categoriesRouter);
-app.use('/api/receipts', receiptsRouter);
-app.use('/api/deliveries', deliveriesRouter);
-app.use('/api/transfers', transfersRouter);
-app.use('/api/adjustments', adjustmentsRouter);
-app.use('/api/ledger', ledgerRouter);
-app.use('/api/dashboard', dashboardRouter);
-app.use('/api/move-history', dashboardRouter); // Supports GET /api/move-history as well
-app.use('/api/admin', adminRouter);
+mount('/auth', authRouter);
+mount('/setup', authRouter);
+mount('/products', productsRouter);
+mount('/warehouses', warehousesRouter);
+mount('/locations', locationsRouter);
+mount('/categories', categoriesRouter);
+mount('/receipts', receiptsRouter);
+mount('/deliveries', deliveriesRouter);
+mount('/transfers', transfersRouter);
+mount('/adjustments', adjustmentsRouter);
+mount('/ledger', ledgerRouter);
+mount('/dashboard', dashboardRouter);
+mount('/move-history', dashboardRouter);
+mount('/admin', adminRouter);
+mount('/staff', staffRouter);
+mount('/users', staffRouter);
+mount('/notifications', notificationsRouter);
+mount('/reorder-rules', reorderRulesRouter);
 
 // Centralized Error Handling Middleware
 app.use(errorHandler);
