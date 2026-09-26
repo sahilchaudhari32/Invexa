@@ -45,6 +45,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const kpis = getKPIs();
   const unreadNotifs = notifications.filter(n => !n.read).length;
 
+  const isStaff = currentUser?.role?.toLowerCase().includes('staff') || 
+                  currentUser?.role?.toLowerCase().includes('operator');
+
   const navItems = [
     {
       section: 'Overview',
@@ -70,20 +73,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       section: 'Operations',
       items: [
-        {
-          id: 'receipts',
-          label: 'Receipts (Inbound)',
-          icon: ArrowDownLeft,
-          badge: kpis.pendingReceipts > 0 ? `${kpis.pendingReceipts}` : undefined,
-          badgeColor: 'bg-blue-100 text-blue-700'
-        },
-        {
-          id: 'deliveries',
-          label: 'Delivery Orders (Out)',
-          icon: Truck,
-          badge: kpis.pendingDeliveries > 0 ? `${kpis.pendingDeliveries}` : undefined,
-          badgeColor: 'bg-indigo-100 text-indigo-700'
-        },
+        ...(!isStaff ? [
+          {
+            id: 'receipts',
+            label: 'Receipts (Inbound)',
+            icon: ArrowDownLeft,
+            badge: kpis.pendingReceipts > 0 ? `${kpis.pendingReceipts}` : undefined,
+            badgeColor: 'bg-blue-100 text-blue-700'
+          },
+          {
+            id: 'deliveries',
+            label: 'Delivery Orders (Out)',
+            icon: Truck,
+            badge: kpis.pendingDeliveries > 0 ? `${kpis.pendingDeliveries}` : undefined,
+            badgeColor: 'bg-indigo-100 text-indigo-700'
+          }
+        ] : []),
         {
           id: 'transfers',
           label: 'Transfers & Adjustments',

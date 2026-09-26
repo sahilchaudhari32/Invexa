@@ -52,11 +52,17 @@ export const DashboardView: React.FC = () => {
     getKPIs,
     receipts,
     deliveries,
+    transfers,
+    adjustments,
+    locations,
     products,
     setActiveView,
     setSelectedReceiptId,
     setSelectedDeliveryId
   } = useStockSense();
+
+  const isStaff = currentUser?.role?.toLowerCase().includes('staff') || 
+                  currentUser?.role?.toLowerCase().includes('operator');
 
   const kpis = getKPIs();
 
@@ -69,6 +75,11 @@ export const DashboardView: React.FC = () => {
   const pendingDeliveries = deliveries.filter(d => d.status === 'Draft' || d.status === 'Waiting').length;
   const readyDeliveries = deliveries.filter(d => d.status === 'Ready').length;
   const doneDeliveries = deliveries.filter(d => d.status === 'Done').length;
+
+  // Transfer breakdown
+  const pendingTransfers = (transfers || []).filter(t => t.status === 'Draft' || t.status === 'Waiting').length;
+  const readyTransfers = (transfers || []).filter(t => t.status === 'Ready').length;
+  const doneTransfers = (transfers || []).filter(t => t.status === 'Done').length;
 
   // 1. Line Chart: Stock Velocity
   const lineChartData = {
@@ -187,27 +198,40 @@ export const DashboardView: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={() => setActiveView('receipts')}
-            className="btn btn-secondary text-xs"
-          >
-            <ArrowDownLeft className="w-4 h-4 text-blue-600" />
-            <span>+ New Receipt</span>
-          </button>
-          <button
-            onClick={() => setActiveView('deliveries')}
-            className="btn btn-primary text-xs"
-          >
-            <Truck className="w-4 h-4" />
-            <span>+ New Delivery</span>
-          </button>
+          {!isStaff && (
+            <>
+              <button
+                onClick={() => setActiveView('receipts')}
+                className="btn btn-secondary text-xs"
+              >
+                <ArrowDownLeft className="w-4 h-4 text-blue-600" />
+                <span>+ New Receipt</span>
+              </button>
+              <button
+                onClick={() => setActiveView('deliveries')}
+                className="btn btn-primary text-xs"
+              >
+                <Truck className="w-4 h-4" />
+                <span>+ New Delivery</span>
+              </button>
+            </>
+          )}
           <button
             onClick={() => setActiveView('transfers')}
-            className="btn btn-subtle text-xs"
+            className={`btn text-xs ${isStaff ? 'btn-primary' : 'btn-subtle'}`}
           >
             <ArrowLeftRight className="w-4 h-4" />
-            <span>Transfer</span>
+            <span>+ New Transfer</span>
           </button>
+          {isStaff && (
+            <button
+              onClick={() => setActiveView('transfers')}
+              className="btn btn-secondary text-xs"
+            >
+              <PlusCircle className="w-4 h-4 text-emerald-600" />
+              <span>+ Stock Count</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -284,34 +308,34 @@ export const DashboardView: React.FC = () => {
         </div>
 
         {/* KPI 5 */}
-        <div className="kpi-card" onClick={() => setActiveView('receipts')}>
+        <div className="kpi-card" onClick={() => setActiveView(isStaff ? 'transfers' : 'receipts')}>
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-semibold">Pending Receipts</span>
+            <span className="text-xs font-semibold">{isStaff ? 'Internal Transfers' : 'Pending Receipts'}</span>
             <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-              <ArrowDownLeft className="w-4 h-4" />
+              {isStaff ? <ArrowLeftRight className="w-4 h-4" /> : <ArrowDownLeft className="w-4 h-4" />}
             </div>
           </div>
           <div className="text-2xl font-bold text-blue-600 font-display">
-            {kpis.pendingReceipts}
+            {isStaff ? (transfers || []).length : kpis.pendingReceipts}
           </div>
           <div className="text-[11px] text-slate-500 mt-2">
-            {readyReceipts} ready at inbound dock
+            {isStaff ? `${readyTransfers} ready to execute` : `${readyReceipts} ready at inbound dock`}
           </div>
         </div>
 
         {/* KPI 6 */}
-        <div className="kpi-card" onClick={() => setActiveView('deliveries')}>
+        <div className="kpi-card" onClick={() => setActiveView(isStaff ? 'warehouses' : 'deliveries')}>
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-semibold">Pending Deliveries</span>
+            <span className="text-xs font-semibold">{isStaff ? 'Storage Locations' : 'Pending Deliveries'}</span>
             <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-              <Truck className="w-4 h-4" />
+              {isStaff ? <Building2 className="w-4 h-4" /> : <Truck className="w-4 h-4" />}
             </div>
           </div>
           <div className="text-2xl font-bold text-indigo-600 font-display">
-            {kpis.pendingDeliveries}
+            {isStaff ? (locations || []).length : kpis.pendingDeliveries}
           </div>
           <div className="text-[11px] text-slate-500 mt-2">
-            {readyDeliveries} picked & ready to ship
+            {isStaff ? 'Racks, Bins & Aisles' : `${readyDeliveries} picked & ready to ship`}
           </div>
         </div>
 
@@ -484,176 +508,304 @@ export const DashboardView: React.FC = () => {
         </div>
       </div>
 
-      {/* Quick Access Panels: Receipts & Deliveries */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Receipts Quick Access */}
-        <div className="card">
-          <div className="p-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <ArrowDownLeft className="w-4 h-4 text-blue-600" />
-                Incoming Receipts (Goods Inbound)
-              </h3>
-              <p className="text-[11px] text-slate-500">Track and receive supplier shipments at docks</p>
+      {/* Quick Access Panels: Role Adapted */}
+      {!isStaff ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Receipts Quick Access */}
+          <div className="card">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <ArrowDownLeft className="w-4 h-4 text-blue-600" />
+                  Incoming Receipts (Goods Inbound)
+                </h3>
+                <p className="text-[11px] text-slate-500">Track and receive supplier shipments at docks</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveView('receipts')}
+                  className="btn btn-primary btn-sm text-xs"
+                >
+                  + New Receipt
+                </button>
+                <button
+                  onClick={() => setActiveView('receipts')}
+                  className="btn btn-secondary btn-sm text-xs"
+                >
+                  View All
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setActiveView('receipts')}
-                className="btn btn-primary btn-sm text-xs"
-              >
-                + New Receipt
-              </button>
-              <button
-                onClick={() => setActiveView('receipts')}
-                className="btn btn-secondary btn-sm text-xs"
-              >
-                View All
-              </button>
+
+            <div className="p-4">
+              <div className="grid grid-cols-3 gap-2.5 mb-4 text-center">
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Draft / Waiting</span>
+                  <span className="block text-base font-bold text-slate-800">{pendingReceipts}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200">
+                  <span className="text-[10px] font-bold text-blue-600 uppercase">Ready at Dock</span>
+                  <span className="block text-base font-bold text-blue-700">{readyReceipts}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
+                  <span className="text-[10px] font-bold text-emerald-600 uppercase">Completed</span>
+                  <span className="block text-base font-bold text-emerald-700">{doneReceipts}</span>
+                </div>
+              </div>
+
+              <div className="divide-y divide-slate-100">
+                {receipts.slice(0, 3).map(r => (
+                  <div
+                    key={r.id}
+                    onClick={() => {
+                      setSelectedReceiptId(r.id);
+                      setActiveView('receipts');
+                    }}
+                    className="py-2.5 px-2 flex items-center justify-between hover:bg-slate-50 rounded-xl cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                        IN
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-xs text-slate-900 font-mono">{r.reference}</span>
+                          {r.isLate && (
+                            <span className="px-1.5 py-0.2 bg-red-100 text-red-700 font-bold text-[10px] rounded">Late</span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-slate-500 truncate max-w-[180px] sm:max-w-xs">
+                          {r.supplier || 'Supplier'} • {(r.items || []).length} line(s)
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className={`badge ${
+                        r.status === 'Done' ? 'badge-done' :
+                        r.status === 'Ready' ? 'badge-ready' :
+                        r.status === 'Waiting' ? 'badge-waiting' : 'badge-draft'
+                      }`}>
+                        {r.status}
+                      </span>
+                      <span className="block text-[10px] text-slate-400 mt-0.5 font-mono">{r.scheduledDate}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="p-4">
-            <div className="grid grid-cols-3 gap-2.5 mb-4 text-center">
-              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                <span className="text-[10px] font-bold text-slate-400 uppercase">Draft / Waiting</span>
-                <span className="block text-base font-bold text-slate-800">{pendingReceipts}</span>
+          {/* Deliveries Quick Access */}
+          <div className="card">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <Truck className="w-4 h-4 text-indigo-600" />
+                  Outgoing Delivery Orders (Fulfillment)
+                </h3>
+                <p className="text-[11px] text-slate-500">Pick, pack, stage and dispatch customer orders</p>
               </div>
-              <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200">
-                <span className="text-[10px] font-bold text-blue-600 uppercase">Ready at Dock</span>
-                <span className="block text-base font-bold text-blue-700">{readyReceipts}</span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
-                <span className="text-[10px] font-bold text-emerald-600 uppercase">Completed</span>
-                <span className="block text-base font-bold text-emerald-700">{doneReceipts}</span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveView('deliveries')}
+                  className="btn btn-primary btn-sm text-xs"
+                >
+                  + New Delivery
+                </button>
+                <button
+                  onClick={() => setActiveView('deliveries')}
+                  className="btn btn-secondary btn-sm text-xs"
+                >
+                  View All
+                </button>
               </div>
             </div>
 
-            <div className="divide-y divide-slate-100">
-              {receipts.slice(0, 3).map(r => (
-                <div
-                  key={r.id}
-                  onClick={() => {
-                    setSelectedReceiptId(r.id);
-                    setActiveView('receipts');
-                  }}
-                  className="py-2.5 px-2 flex items-center justify-between hover:bg-slate-50 rounded-xl cursor-pointer transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 font-mono font-bold text-xs flex items-center justify-center shrink-0">
-                      IN
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-xs text-slate-900 font-mono">{r.reference}</span>
-                        {r.isLate && (
-                          <span className="px-1.5 py-0.2 bg-red-100 text-red-700 font-bold text-[10px] rounded">Late</span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-slate-500 truncate max-w-[180px] sm:max-w-xs">
-                        {r.supplier || 'Supplier'} • {(r.items || []).length} line(s)
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className={`badge ${
-                      r.status === 'Done' ? 'badge-done' :
-                      r.status === 'Ready' ? 'badge-ready' :
-                      r.status === 'Waiting' ? 'badge-waiting' : 'badge-draft'
-                    }`}>
-                      {r.status}
-                    </span>
-                    <span className="block text-[10px] text-slate-400 mt-0.5 font-mono">{r.scheduledDate}</span>
-                  </div>
+            <div className="p-4">
+              <div className="grid grid-cols-3 gap-2.5 mb-4 text-center">
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Draft / Waiting</span>
+                  <span className="block text-base font-bold text-slate-800">{pendingDeliveries}</span>
                 </div>
-              ))}
+                <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200">
+                  <span className="text-[10px] font-bold text-blue-600 uppercase">Ready to Ship</span>
+                  <span className="block text-base font-bold text-blue-700">{readyDeliveries}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
+                  <span className="text-[10px] font-bold text-emerald-600 uppercase">Dispatched</span>
+                  <span className="block text-base font-bold text-emerald-700">{doneDeliveries}</span>
+                </div>
+              </div>
+
+              <div className="divide-y divide-slate-100">
+                {(deliveries || []).slice(0, 3).map(d => (
+                  <div
+                    key={d.id}
+                    onClick={() => {
+                      setSelectedDeliveryId(d.id);
+                      setActiveView('deliveries');
+                    }}
+                    className="py-2.5 px-2 flex items-center justify-between hover:bg-slate-50 rounded-xl cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                        OUT
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-xs text-slate-900 font-mono">{d.reference}</span>
+                          {d.isLate && (
+                            <span className="px-1.5 py-0.2 bg-red-100 text-red-700 font-bold text-[10px] rounded">Late</span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-slate-500 truncate max-w-[180px] sm:max-w-xs">
+                          {d.customer || 'Customer'} • {(d.items || []).length} line(s)
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className={`badge ${
+                        d.status === 'Done' ? 'badge-done' :
+                        d.status === 'Ready' ? 'badge-ready' :
+                        d.status === 'Waiting' ? 'badge-waiting' : 'badge-draft'
+                      }`}>
+                        {d.status}
+                      </span>
+                      <span className="block text-[10px] text-slate-400 mt-0.5 font-mono">{d.scheduledDate}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Deliveries Quick Access */}
-        <div className="card">
-          <div className="p-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <Truck className="w-4 h-4 text-indigo-600" />
-                Outgoing Delivery Orders (Fulfillment)
-              </h3>
-              <p className="text-[11px] text-slate-500">Pick, pack, stage and dispatch customer orders</p>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Transfers Quick Access for Staff */}
+          <div className="card">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <ArrowLeftRight className="w-4 h-4 text-purple-600" />
+                  Internal Transfers & Floor Moves
+                </h3>
+                <p className="text-[11px] text-slate-500">Move products between racks, aisles and production bays</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveView('transfers')}
+                  className="btn btn-primary btn-sm text-xs"
+                >
+                  + New Transfer
+                </button>
+                <button
+                  onClick={() => setActiveView('transfers')}
+                  className="btn btn-secondary btn-sm text-xs"
+                >
+                  View All
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setActiveView('deliveries')}
-                className="btn btn-primary btn-sm text-xs"
-              >
-                + New Delivery
-              </button>
-              <button
-                onClick={() => setActiveView('deliveries')}
-                className="btn btn-secondary btn-sm text-xs"
-              >
-                View All
-              </button>
+
+            <div className="p-4">
+              <div className="grid grid-cols-3 gap-2.5 mb-4 text-center">
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Draft</span>
+                  <span className="block text-base font-bold text-slate-800">{pendingTransfers}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-purple-50 border border-purple-200">
+                  <span className="text-[10px] font-bold text-purple-600 uppercase">Ready</span>
+                  <span className="block text-base font-bold text-purple-700">{readyTransfers}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
+                  <span className="text-[10px] font-bold text-emerald-600 uppercase">Executed</span>
+                  <span className="block text-base font-bold text-emerald-700">{doneTransfers}</span>
+                </div>
+              </div>
+
+              <div className="divide-y divide-slate-100">
+                {(transfers || []).slice(0, 3).map(t => (
+                  <div
+                    key={t.id}
+                    onClick={() => setActiveView('transfers')}
+                    className="py-2.5 px-2 flex items-center justify-between hover:bg-slate-50 rounded-xl cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-700 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                        TR
+                      </div>
+                      <div>
+                        <span className="font-bold text-xs text-slate-900 font-mono">{t.reference}</span>
+                        <p className="text-[11px] text-slate-500 truncate max-w-[180px] sm:max-w-xs">
+                          {t.fromLocationName} ➔ {t.toLocationName}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className={`badge ${
+                        t.status === 'Done' ? 'badge-done' :
+                        t.status === 'Ready' ? 'badge-ready' : 'badge-draft'
+                      }`}>
+                        {t.status}
+                      </span>
+                      <span className="block text-[10px] text-slate-400 mt-0.5 font-mono">{t.scheduledDate || t.date}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="p-4">
-            <div className="grid grid-cols-3 gap-2.5 mb-4 text-center">
-              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                <span className="text-[10px] font-bold text-slate-400 uppercase">Draft / Waiting</span>
-                <span className="block text-base font-bold text-slate-800">{pendingDeliveries}</span>
+          {/* Adjustments & Physical Count for Staff */}
+          <div className="card">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-emerald-600" />
+                  Physical Stock Adjustments & Counts
+                </h3>
+                <p className="text-[11px] text-slate-500">Record shelf cycle counts, scrap, and damage reconciliations</p>
               </div>
-              <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200">
-                <span className="text-[10px] font-bold text-blue-600 uppercase">Ready to Ship</span>
-                <span className="block text-base font-bold text-blue-700">{readyDeliveries}</span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
-                <span className="text-[10px] font-bold text-emerald-600 uppercase">Dispatched</span>
-                <span className="block text-base font-bold text-emerald-700">{doneDeliveries}</span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveView('transfers')}
+                  className="btn btn-secondary btn-sm text-xs"
+                >
+                  Audit Floor
+                </button>
               </div>
             </div>
 
-            <div className="divide-y divide-slate-100">
-              {(deliveries || []).slice(0, 3).map(d => (
-                <div
-                  key={d.id}
-                  onClick={() => {
-                    setSelectedDeliveryId(d.id);
-                    setActiveView('deliveries');
-                  }}
-                  className="py-2.5 px-2 flex items-center justify-between hover:bg-slate-50 rounded-xl cursor-pointer transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 font-mono font-bold text-xs flex items-center justify-center shrink-0">
-                      OUT
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-xs text-slate-900 font-mono">{d.reference}</span>
-                        {d.isLate && (
-                          <span className="px-1.5 py-0.2 bg-red-100 text-red-700 font-bold text-[10px] rounded">Late</span>
-                        )}
+            <div className="p-4">
+              <div className="divide-y divide-slate-100">
+                {(adjustments || []).slice(0, 3).map(a => (
+                  <div
+                    key={a.id}
+                    onClick={() => setActiveView('transfers')}
+                    className="py-2.5 px-2 flex items-center justify-between hover:bg-slate-50 rounded-xl cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                        ADJ
                       </div>
-                      <p className="text-[11px] text-slate-500 truncate max-w-[180px] sm:max-w-xs">
-                        {d.customer || 'Customer'} • {(d.items || []).length} line(s)
-                      </p>
+                      <div>
+                        <span className="font-bold text-xs text-slate-900 font-mono">{a.reference}</span>
+                        <p className="text-[11px] text-slate-500 truncate max-w-[180px] sm:max-w-xs">
+                          {a.productName} • Physical: {a.physicalCount} {a.unit}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="badge badge-done">Applied</span>
+                      <span className="block text-[10px] text-slate-400 mt-0.5 font-mono">{a.date}</span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className={`badge ${
-                      d.status === 'Done' ? 'badge-done' :
-                      d.status === 'Ready' ? 'badge-ready' :
-                      d.status === 'Waiting' ? 'badge-waiting' : 'badge-draft'
-                    }`}>
-                      {d.status}
-                    </span>
-                    <span className="block text-[10px] text-slate-400 mt-0.5 font-mono">{d.scheduledDate}</span>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* 4 Analytics Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

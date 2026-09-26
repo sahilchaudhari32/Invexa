@@ -16,14 +16,19 @@ export const CommandPalette: React.FC = () => {
   const {
     isCommandPaletteOpen,
     setIsCommandPaletteOpen,
+    currentUser,
     products,
     receipts,
     deliveries,
+    transfers,
     setActiveView,
     setSelectedProductId,
     setSelectedReceiptId,
     setSelectedDeliveryId
   } = useStockSense();
+
+  const isStaff = currentUser?.role?.toLowerCase().includes('staff') || 
+                  currentUser?.role?.toLowerCase().includes('operator');
 
   const [query, setQuery] = useState('');
 
@@ -103,27 +108,31 @@ export const CommandPalette: React.FC = () => {
               Quick Operational Actions
             </div>
             <div className="space-y-1">
-              <button
-                onClick={() => handleNav('receipts')}
-                className="w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
-              >
-                <div className="flex items-center gap-2.5">
-                  <PlusCircle className="w-4 h-4 text-blue-600" />
-                  <span>+ New Inbound Receipt (WH/IN/...)</span>
-                </div>
-                <span className="text-[10px] text-slate-400">Jump to Inbound</span>
-              </button>
+              {!isStaff && (
+                <>
+                  <button
+                    onClick={() => handleNav('receipts')}
+                    className="w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <PlusCircle className="w-4 h-4 text-blue-600" />
+                      <span>+ New Inbound Receipt (WH/IN/...)</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400">Jump to Inbound</span>
+                  </button>
 
-              <button
-                onClick={() => handleNav('deliveries')}
-                className="w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Truck className="w-4 h-4 text-indigo-600" />
-                  <span>+ New Delivery Order (WH/OUT/...)</span>
-                </div>
-                <span className="text-[10px] text-slate-400">Jump to Outbound</span>
-              </button>
+                  <button
+                    onClick={() => handleNav('deliveries')}
+                    className="w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Truck className="w-4 h-4 text-indigo-600" />
+                      <span>+ New Delivery Order (WH/OUT/...)</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400">Jump to Outbound</span>
+                  </button>
+                </>
+              )}
 
               <button
                 onClick={() => handleNav('transfers')}
@@ -180,8 +189,8 @@ export const CommandPalette: React.FC = () => {
             </div>
           )}
 
-          {/* Matched Receipts */}
-          {matchedReceipts.length > 0 && (
+          {/* Matched Receipts (Manager only) */}
+          {!isStaff && matchedReceipts.length > 0 && (
             <div>
               <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Receipts ({matchedReceipts.length})
@@ -211,8 +220,8 @@ export const CommandPalette: React.FC = () => {
             </div>
           )}
 
-          {/* Matched Deliveries */}
-          {matchedDeliveries.length > 0 && (
+          {/* Matched Deliveries (Manager only) */}
+          {!isStaff && matchedDeliveries.length > 0 && (
             <div>
               <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Deliveries ({matchedDeliveries.length})
