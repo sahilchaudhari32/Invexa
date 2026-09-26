@@ -13,6 +13,7 @@ import {
   Building2,
   Tags,
   User,
+  Users,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -41,7 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const mobileOpen = externalMobileOpen !== undefined ? externalMobileOpen : internalMobileOpen;
   const setMobileOpen = externalSetMobileOpen || setInternalMobileOpen;
 
-  const { activeView, setActiveView, getKPIs, currentUser, logout, notifications } = useStockSense();
+  const { activeView, setActiveView, getKPIs, currentUser, staffMembers, logout, notifications } = useStockSense();
   const kpis = getKPIs();
   const unreadNotifs = notifications.filter(n => !n.read).length;
 
@@ -100,7 +101,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
       section: 'Audit & Network',
       items: [
         { id: 'history', label: 'Move History & Ledger', icon: History },
-        { id: 'warehouses', label: 'Warehouses & Locations', icon: Building2 }
+        { id: 'warehouses', label: 'Warehouses & Locations', icon: Building2 },
+        ...(!isStaff ? [
+          {
+            id: 'staff',
+            label: 'Staff & Operators',
+            icon: Users,
+            badge: (staffMembers || []).length > 0 ? `${(staffMembers || []).length}` : undefined,
+            badgeColor: 'bg-emerald-100 text-emerald-700 font-bold'
+          }
+        ] : [])
       ]
     }
   ];

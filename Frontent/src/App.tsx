@@ -20,6 +20,7 @@ import { ProfileView } from './components/views/ProfileView';
 import { AuthView } from './components/views/AuthView';
 import { LandingView } from './components/views/LandingView';
 import { InboxView } from './components/views/InboxView';
+import { StaffManagementView } from './components/views/StaffManagementView';
 
 
 import { ErrorBoundary } from './components/common/ErrorBoundary';
@@ -43,6 +44,10 @@ const MainLayout: React.FC = () => {
         return <StockView />;
       case 'warehouses':
         return <WarehousesView />;
+      case 'staff':
+      case 'operators':
+      case 'team':
+        return <StaffManagementView />;
       case 'receipts':
         return <ReceiptsView />;
       case 'deliveries':

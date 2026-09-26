@@ -251,3 +251,23 @@ export interface DashboardKPIs {
   internalTransfers: number;
   warehouses: number;
 }
+
+export interface StaffMember {
+  id: string;
+  loginId: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  role: string;
+  warehouseId: string;
+  warehouseName: string;
+  department: string;
+  shift: string;
+  status: 'Active' | 'On Leave' | 'Inactive';
+  avatar: string;
+  joinedDate: string;
+  lastActive?: string;
+  assignedTasks?: number;
+  completedTasks?: number;
+}
+

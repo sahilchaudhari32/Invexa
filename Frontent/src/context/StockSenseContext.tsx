@@ -32,6 +32,7 @@ interface StockSenseContextType {
   deliveries: DeliveryOrder[];
   transfers: InternalTransfer[];
   adjustments: InventoryAdjustment[];
+  staffMembers: StaffMember[];
   ledger: LedgerEntry[];
   moveHistory: MoveHistoryEntry[];
   reorderingRules: ReorderRule[];
@@ -54,6 +55,10 @@ interface StockSenseContextType {
   refreshData: () => Promise<void>;
 
   // Actions
+  addStaffMember: (data: Partial<StaffMember>) => Promise<void>;
+  updateStaffMember: (id: string, updates: Partial<StaffMember>) => Promise<void>;
+  deleteStaffMember: (id: string) => Promise<void>;
+
   addProduct: (data: Partial<Product>) => Promise<Product | undefined>;
   updateProduct: (id: string, updates: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
@@ -440,6 +445,98 @@ const INITIAL_DATA = {
   notifications: [
     { id: 'NOTIF-001', title: 'Low Stock Alert', message: 'Ergonomic Executive Office Chair (SKU: FURN-CHR-002) is low in stock: 12 remaining (Min Reorder: 20).', type: 'warning' as const, icon: 'AlertTriangle', time: '10 min ago', read: false, link: 'products' },
     { id: 'NOTIF-002', title: 'Out of Stock Alert', message: 'StockSense Enterprise Core i7 Laptop (SKU: ELEC-LPT-003) is completely out of stock!', type: 'danger' as const, icon: 'AlertOctagon', time: '25 min ago', read: false, link: 'products' }
+  ],
+  staffMembers: [
+    {
+      id: 'STF-001',
+      loginId: 'alex.rivera',
+      fullName: 'Alex Rivera',
+      email: 'alex.rivera@invexa.io',
+      phone: '+91 98765 43210',
+      role: 'Inventory Manager',
+      warehouseId: 'WH-001',
+      warehouseName: 'Main Distribution Warehouse',
+      department: 'Supply Chain Operations',
+      shift: 'General Shift (09:00 - 18:00)',
+      status: 'Active' as const,
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      joinedDate: 'March 2024',
+      lastActive: 'Just now',
+      assignedTasks: 18,
+      completedTasks: 142
+    },
+    {
+      id: 'STF-002',
+      loginId: 'staff.operator',
+      fullName: 'Priya Sharma',
+      email: 'staff.operator@invexa.io',
+      phone: '+91 98250 11223',
+      role: 'Warehouse Staff',
+      warehouseId: 'WH-002',
+      warehouseName: 'Kalol Production Warehouse',
+      department: 'Floor Operations & Logistics',
+      shift: 'Morning Shift (06:00 - 14:00)',
+      status: 'Active' as const,
+      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+      joinedDate: 'January 2024',
+      lastActive: '5 mins ago',
+      assignedTasks: 8,
+      completedTasks: 89
+    },
+    {
+      id: 'STF-003',
+      loginId: 'vikram.mehta',
+      fullName: 'Vikram Mehta',
+      email: 'vikram.mehta@invexa.io',
+      phone: '+91 98112 33445',
+      role: 'Forklift & Dock Operator',
+      warehouseId: 'WH-001',
+      warehouseName: 'Main Distribution Warehouse',
+      department: 'Dock & Heavy Loading',
+      shift: 'Morning Shift (06:00 - 14:00)',
+      status: 'Active' as const,
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      joinedDate: 'April 2024',
+      lastActive: '12 mins ago',
+      assignedTasks: 5,
+      completedTasks: 67
+    },
+    {
+      id: 'STF-004',
+      loginId: 'rajesh.patel',
+      fullName: 'Rajesh Patel',
+      email: 'rajesh.patel@invexa.io',
+      phone: '+91 98980 44556',
+      role: 'Inventory Auditor',
+      warehouseId: 'WH-003',
+      warehouseName: 'Express Transit Hub',
+      department: 'Quality Assurance & Audit',
+      shift: 'General Shift (09:00 - 18:00)',
+      status: 'Active' as const,
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+      joinedDate: 'February 2024',
+      lastActive: '1 hour ago',
+      assignedTasks: 4,
+      completedTasks: 54
+    },
+    {
+      id: 'STF-005',
+      loginId: 'ananya.desai',
+      fullName: 'Ananya Desai',
+      email: 'ananya.desai@invexa.io',
+      phone: '+91 97230 55667',
+      role: 'Warehouse Staff',
+      warehouseId: 'WH-004',
+      warehouseName: 'Central Staging Facility',
+      department: 'Shelving & Picking',
+      shift: 'Morning Shift (06:00 - 14:00)',
+      status: 'On Leave' as const,
+      avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
+      joinedDate: 'May 2024',
+      lastActive: '2 days ago',
+      assignedTasks: 0,
+      completedTasks: 38
+    }
   ]
 };
 
@@ -1525,6 +1622,63 @@ export const StockSenseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     showToast('Safety stock reorder rule saved.', 'success');
   };
 
+  const addStaffMember = async (staffData: Partial<StaffMember>) => {
+    const id = `STF-${String(((data.staffMembers || []).length) + 1).padStart(3, '0')}`;
+    const wh = data.warehouses.find((w: Warehouse) => w.id === staffData.warehouseId) || data.warehouses[0];
+    const newStaff: StaffMember = {
+      id,
+      loginId: staffData.loginId || staffData.email?.split('@')[0] || `staff.${Date.now()}`,
+      fullName: staffData.fullName || 'Warehouse Operator',
+      email: staffData.email || `${staffData.loginId || 'staff'}@invexa.io`,
+      phone: staffData.phone || '+91 98765 00000',
+      role: staffData.role || 'Warehouse Staff',
+      warehouseId: staffData.warehouseId || wh?.id || 'WH-001',
+      warehouseName: wh?.name || 'Main Distribution Warehouse',
+      department: staffData.department || 'Floor Operations & Logistics',
+      shift: staffData.shift || 'Morning Shift (06:00 - 14:00)',
+      status: staffData.status || 'Active',
+      avatar: staffData.avatar || `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 900000000)}?w=150&auto=format&fit=crop&q=80`,
+      joinedDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+      lastActive: 'Just registered',
+      assignedTasks: 0,
+      completedTasks: 0
+    };
+
+    setData((prev: typeof INITIAL_DATA) => {
+      const updated = {
+        ...prev,
+        staffMembers: [newStaff, ...(prev.staffMembers || [])]
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
+    showToast(`Staff operator ${newStaff.fullName} added successfully.`, 'success');
+  };
+
+  const updateStaffMember = async (id: string, updates: Partial<StaffMember>) => {
+    setData((prev: typeof INITIAL_DATA) => {
+      const updated = {
+        ...prev,
+        staffMembers: (prev.staffMembers || []).map((s: StaffMember) => s.id === id ? { ...s, ...updates } : s)
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
+    showToast('Staff member details updated.', 'success');
+  };
+
+  const deleteStaffMember = async (id: string) => {
+    setData((prev: typeof INITIAL_DATA) => {
+      const updated = {
+        ...prev,
+        staffMembers: (prev.staffMembers || []).filter((s: StaffMember) => s.id !== id)
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
+    showToast('Staff operator record removed.', 'info');
+  };
+
   const markNotificationRead = (id: string) => {
     setData((prev: typeof INITIAL_DATA) => {
       const updated = {
@@ -1771,6 +1925,7 @@ export const StockSenseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         deliveries: data.deliveries,
         transfers: data.transfers,
         adjustments: data.adjustments,
+        staffMembers: data.staffMembers || [],
         ledger: data.ledger,
         moveHistory: data.moveHistory,
         reorderingRules: data.reorderingRules,
@@ -1794,6 +1949,9 @@ export const StockSenseProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         addProduct,
         updateProduct,
         deleteProduct,
+        addStaffMember,
+        updateStaffMember,
+        deleteStaffMember,
         createReceipt,
         validateReceipt,
         updateReceiptStatus,

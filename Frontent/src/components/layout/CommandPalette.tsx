@@ -9,6 +9,7 @@ import {
   Sliders,
   PlusCircle,
   Inbox,
+  Users,
   X
 } from 'lucide-react';
 
@@ -21,6 +22,7 @@ export const CommandPalette: React.FC = () => {
     receipts,
     deliveries,
     transfers,
+    staffMembers,
     setActiveView,
     setSelectedProductId,
     setSelectedReceiptId,
@@ -89,7 +91,7 @@ export const CommandPalette: React.FC = () => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoFocus
-            placeholder="Type a SKU, product name, receipt, or action..."
+            placeholder="Type a SKU, product name, staff operator, or action..."
             className="w-full text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400"
           />
           <button
@@ -130,6 +132,17 @@ export const CommandPalette: React.FC = () => {
                       <span>+ New Delivery Order (WH/OUT/...)</span>
                     </div>
                     <span className="text-[10px] text-slate-400">Jump to Outbound</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleNav('staff')}
+                    className="w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Users className="w-4 h-4 text-emerald-600" />
+                      <span>Manage Staff & Floor Operators</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400">Team Roster</span>
                   </button>
                 </>
               )}
