@@ -369,11 +369,103 @@ export const AuthView: React.FC = () => {
               <div>
                 <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Create your account</h2>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Join your organization's inventory control and supply chain network
+                  Select your operational role and join your organization's supply chain network
                 </p>
               </div>
 
+              {/* Quick Auto-fill for Registration Testing */}
+              <div className="p-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs space-y-1.5">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3 text-sky-600" />
+                  <span>Auto-fill Demo Registration</span>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRegFullName('Alex Rivera');
+                      setRegLoginId('alex.manager');
+                      setRegEmail('alex.manager@invexa.io');
+                      setRegPhone('+91 98765 43210');
+                      setRegPassword('Admin@123');
+                      setRegConfirmPassword('Admin@123');
+                      setRegRole('Inventory Manager');
+                    }}
+                    className="px-2 py-1 bg-white hover:bg-sky-50 border border-slate-200 hover:border-sky-300 rounded-lg text-[11px] font-semibold text-slate-700 text-left transition-colors cursor-pointer"
+                  >
+                    Fill <strong className="text-sky-700">Manager</strong> Info
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRegFullName('Priya Sharma');
+                      setRegLoginId('priya.staff');
+                      setRegEmail('priya.staff@invexa.io');
+                      setRegPhone('+91 98250 11223');
+                      setRegPassword('Operator@123');
+                      setRegConfirmPassword('Operator@123');
+                      setRegRole('Warehouse Staff');
+                    }}
+                    className="px-2 py-1 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-lg text-[11px] font-semibold text-slate-700 text-left transition-colors cursor-pointer"
+                  >
+                    Fill <strong className="text-emerald-700">Staff</strong> Info
+                  </button>
+                </div>
+              </div>
+
               <form onSubmit={handleRegisterSubmit} className="space-y-2">
+                {/* Role Selector */}
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                    Select Your Role <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Role Option 1: Inventory Manager */}
+                    <div
+                      onClick={() => setRegRole('Inventory Manager')}
+                      className={`p-2 rounded-xl border transition-all cursor-pointer text-left ${
+                        regRole === 'Inventory Manager'
+                          ? 'bg-sky-50/80 border-sky-500 ring-2 ring-sky-500/20 shadow-xs'
+                          : 'bg-white border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-xs font-bold text-slate-900">Inventory Manager</span>
+                        <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                          regRole === 'Inventory Manager' ? 'border-sky-600 bg-sky-600 text-white' : 'border-slate-300'
+                        }`}>
+                          {regRole === 'Inventory Manager' && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 leading-tight">
+                        Manage incoming & outgoing stock, receipts, deliveries, and suppliers
+                      </p>
+                    </div>
+
+                    {/* Role Option 2: Warehouse Staff */}
+                    <div
+                      onClick={() => setRegRole('Warehouse Staff')}
+                      className={`p-2 rounded-xl border transition-all cursor-pointer text-left ${
+                        regRole === 'Warehouse Staff'
+                          ? 'bg-emerald-50/80 border-emerald-500 ring-2 ring-emerald-500/20 shadow-xs'
+                          : 'bg-white border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-xs font-bold text-slate-900">Warehouse Staff</span>
+                        <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                          regRole === 'Warehouse Staff' ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300'
+                        }`}>
+                          {regRole === 'Warehouse Staff' && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 leading-tight">
+                        Perform transfers, picking, shelving, and counting
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Full Name & Corporate Email */}
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -385,7 +477,7 @@ export const AuthView: React.FC = () => {
                       <input
                         type="text"
                         required
-                        placeholder="e.g. Sarah Connor"
+                        placeholder="e.g. Alex Rivera"
                         value={regFullName}
                         onChange={(e) => setRegFullName(e.target.value)}
                         className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/15 transition-all outline-none"
@@ -402,7 +494,7 @@ export const AuthView: React.FC = () => {
                       <input
                         type="email"
                         required
-                        placeholder="sarah@stocksense.io"
+                        placeholder="alex@invexa.io"
                         value={regEmail}
                         onChange={(e) => setRegEmail(e.target.value)}
                         className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/15 transition-all outline-none"
@@ -421,7 +513,7 @@ export const AuthView: React.FC = () => {
                       <Phone className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                       <input
                         type="tel"
-                        placeholder="+1 (555) 019-2834"
+                        placeholder="+91 98765 43210"
                         value={regPhone}
                         onChange={(e) => setRegPhone(e.target.value)}
                         className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/15 transition-all outline-none"
@@ -437,7 +529,7 @@ export const AuthView: React.FC = () => {
                       <IdCard className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                       <input
                         type="text"
-                        placeholder="e.g. sarah.c"
+                        placeholder="e.g. alex.manager"
                         value={regLoginId}
                         onChange={(e) => setRegLoginId(e.target.value)}
                         className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/15 transition-all outline-none"
@@ -534,7 +626,7 @@ export const AuthView: React.FC = () => {
                   type="submit"
                   className="w-full py-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 active:from-sky-700 active:to-blue-800 text-white rounded-lg text-xs font-bold shadow-md shadow-sky-500/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                 >
-                  Create Account
+                  Create Account as {regRole}
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </form>
@@ -563,22 +655,135 @@ export const AuthView: React.FC = () => {
                 </p>
               </div>
 
-              {/* Demo Fill Pill */}
-              <div className="py-2 px-3 bg-sky-50/70 border border-sky-200/70 rounded-lg text-xs flex items-center justify-between text-slate-800">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-3.5 h-3.5 text-sky-600 shrink-0" />
-                  <span>Demo Login: <strong>alex.rivera</strong> / <strong>Admin@123</strong></span>
+              {/* 2 DUMMY DEMO ACCOUNTS & AUTOFILL CARDS */}
+              <div className="space-y-1.5">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                  <span className="flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-sky-600" />
+                    Demo Accounts (Auto-fill & 1-Click Login)
+                  </span>
                 </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {/* DUMMY ACCOUNT 1: INVENTORY MANAGER */}
+                  <div className="p-2.5 bg-gradient-to-br from-blue-50/90 to-indigo-50/50 border border-blue-200/80 rounded-xl flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-900">Inventory Manager</span>
+                        <span className="px-1.5 py-0.2 bg-blue-600 text-white text-[9px] font-extrabold rounded">
+                          ADMIN
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">
+                        Manage incoming & outgoing stock
+                      </p>
+                      <div className="text-[10px] font-mono text-blue-900 mt-1">
+                        <strong>alex.rivera</strong> / Admin@123
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-2 pt-1.5 border-t border-blue-200/50">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLoginId('alex.rivera');
+                          setLoginPassword('Admin@123');
+                          showToast('Credentials filled for Inventory Manager', 'info');
+                        }}
+                        className="flex-1 py-1 px-2 bg-white hover:bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-[11px] font-bold text-center transition-colors cursor-pointer"
+                      >
+                        Auto-fill
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await login('alex.rivera', 'Admin@123', 'Inventory Manager');
+                        }}
+                        className="py-1 px-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-bold transition-colors cursor-pointer flex items-center justify-center gap-1"
+                        title="Instant Login as Inventory Manager"
+                      >
+                        <span>Login</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* DUMMY ACCOUNT 2: WAREHOUSE STAFF */}
+                  <div className="p-2.5 bg-gradient-to-br from-slate-50 to-emerald-50/40 border border-slate-200/90 rounded-xl flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-900">Warehouse Staff</span>
+                        <span className="px-1.5 py-0.2 bg-emerald-600 text-white text-[9px] font-extrabold rounded">
+                          STAFF
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">
+                        Perform transfers, picking, shelving & counting
+                      </p>
+                      <div className="text-[10px] font-mono text-emerald-900 mt-1">
+                        <strong>staff.operator</strong> / Operator@123
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-2 pt-1.5 border-t border-slate-200/60">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLoginId('staff.operator');
+                          setLoginPassword('Operator@123');
+                          showToast('Credentials filled for Warehouse Staff', 'info');
+                        }}
+                        className="flex-1 py-1 px-2 bg-white hover:bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-[11px] font-bold text-center transition-colors cursor-pointer"
+                      >
+                        Auto-fill
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await login('staff.operator', 'Operator@123', 'Warehouse Staff');
+                        }}
+                        className="py-1 px-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[11px] font-bold transition-colors cursor-pointer flex items-center justify-center gap-1"
+                        title="Instant Login as Warehouse Staff"
+                      >
+                        <span>Login</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Google SSO Button */}
                 <button
                   type="button"
-                  onClick={() => {
-                    setLoginId('alex.rivera');
-                    setLoginPassword('Admin@123');
+                  onClick={async () => {
+                    await login('alex.rivera@invexa.io', 'Admin@123', 'Inventory Manager');
                   }}
-                  className="text-[11px] font-bold text-sky-600 hover:text-sky-800 underline shrink-0 cursor-pointer"
+                  className="w-full py-1.5 px-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 flex items-center justify-center gap-2 transition-all shadow-2xs hover:shadow-xs cursor-pointer"
                 >
-                  Auto-fill
+                  <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
+                    <path
+                      fill="#4285F4"
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                    />
+                  </svg>
+                  <span>Sign in with Google Workspace</span>
                 </button>
+              </div>
+
+              <div className="relative flex py-1 items-center">
+                <div className="flex-grow border-t border-slate-200"></div>
+                <span className="flex-shrink mx-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Or Manual Login</span>
+                <div className="flex-grow border-t border-slate-200"></div>
               </div>
 
               <form onSubmit={handleLoginSubmit} className="space-y-2.5">
@@ -593,7 +798,7 @@ export const AuthView: React.FC = () => {
                       required
                       value={loginId}
                       onChange={(e) => setLoginId(e.target.value)}
-                      placeholder="e.g. alex.rivera or alex@stocksense.io"
+                      placeholder="e.g. alex.rivera or staff.operator"
                       className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/15 transition-all outline-none"
                     />
                   </div>
