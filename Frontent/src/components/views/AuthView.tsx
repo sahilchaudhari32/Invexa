@@ -367,102 +367,58 @@ export const AuthView: React.FC = () => {
           {mode === 'register' && (
             <div className="space-y-2.5 animate-scale-up">
               <div>
-                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Create your account</h2>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Create Manager Account</h2>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Select your operational role and join your organization's supply chain network
+                  Set up your organization workspace and supply chain inventory network
                 </p>
               </div>
 
               {/* Quick Auto-fill for Registration Testing */}
               <div className="p-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs space-y-1.5">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                  <Sparkles className="w-3 h-3 text-sky-600" />
-                  <span>Auto-fill Demo Registration</span>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Sparkles className="w-3 h-3 text-sky-600" />
+                    <span>Auto-fill Demo Registration</span>
+                  </span>
+                  <span className="text-[9px] text-slate-400 font-medium">Inventory Manager</span>
                 </div>
-                <div className="grid grid-cols-2 gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setRegFullName('Alex Rivera');
-                      setRegLoginId('alex.manager');
-                      setRegEmail('alex.manager@invexa.io');
-                      setRegPhone('+91 98765 43210');
-                      setRegPassword('Admin@123');
-                      setRegConfirmPassword('Admin@123');
-                      setRegRole('Inventory Manager');
-                    }}
-                    className="px-2 py-1 bg-white hover:bg-sky-50 border border-slate-200 hover:border-sky-300 rounded-lg text-[11px] font-semibold text-slate-700 text-left transition-colors cursor-pointer"
-                  >
-                    Fill <strong className="text-sky-700">Manager</strong> Info
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setRegFullName('Priya Sharma');
-                      setRegLoginId('priya.staff');
-                      setRegEmail('priya.staff@invexa.io');
-                      setRegPhone('+91 98250 11223');
-                      setRegPassword('Operator@123');
-                      setRegConfirmPassword('Operator@123');
-                      setRegRole('Warehouse Staff');
-                    }}
-                    className="px-2 py-1 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-lg text-[11px] font-semibold text-slate-700 text-left transition-colors cursor-pointer"
-                  >
-                    Fill <strong className="text-emerald-700">Staff</strong> Info
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRegFullName('Alex Rivera');
+                    setRegLoginId('alex.manager');
+                    setRegEmail('alex.manager@invexa.io');
+                    setRegPhone('+91 98765 43210');
+                    setRegPassword('Admin@123');
+                    setRegConfirmPassword('Admin@123');
+                    setRegRole('Inventory Manager');
+                  }}
+                  className="w-full px-2.5 py-1.5 bg-white hover:bg-sky-50 border border-slate-200 hover:border-sky-300 rounded-lg text-[11px] font-semibold text-slate-700 text-left transition-colors cursor-pointer flex items-center justify-between"
+                >
+                  <span>Fill <strong className="text-sky-700">Inventory Manager</strong> Credentials</span>
+                  <span className="text-[10px] font-mono text-sky-600">alex.manager@invexa.io</span>
+                </button>
               </div>
 
               <form onSubmit={handleRegisterSubmit} className="space-y-2">
-                {/* Role Selector */}
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                    Select Your Role <span className="text-rose-500">*</span>
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {/* Role Option 1: Inventory Manager */}
-                    <div
-                      onClick={() => setRegRole('Inventory Manager')}
-                      className={`p-2 rounded-xl border transition-all cursor-pointer text-left ${
-                        regRole === 'Inventory Manager'
-                          ? 'bg-sky-50/80 border-sky-500 ring-2 ring-sky-500/20 shadow-xs'
-                          : 'bg-white border-slate-200 hover:border-slate-300'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-xs font-bold text-slate-900">Inventory Manager</span>
-                        <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
-                          regRole === 'Inventory Manager' ? 'border-sky-600 bg-sky-600 text-white' : 'border-slate-300'
-                        }`}>
-                          {regRole === 'Inventory Manager' && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-slate-500 leading-tight">
-                        Manage incoming & outgoing stock, receipts, deliveries, and suppliers
-                      </p>
+                {/* Account Role Info Badge */}
+                <div className="p-2.5 bg-sky-50/80 border border-sky-200/80 rounded-xl flex items-start gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-sky-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                    <Shield className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-sky-950">Role: Inventory Manager</span>
+                      <span className="px-1.5 py-0.2 bg-sky-600 text-white text-[9px] font-extrabold rounded">
+                        ADMIN
+                      </span>
                     </div>
-
-                    {/* Role Option 2: Warehouse Staff */}
-                    <div
-                      onClick={() => setRegRole('Warehouse Staff')}
-                      className={`p-2 rounded-xl border transition-all cursor-pointer text-left ${
-                        regRole === 'Warehouse Staff'
-                          ? 'bg-emerald-50/80 border-emerald-500 ring-2 ring-emerald-500/20 shadow-xs'
-                          : 'bg-white border-slate-200 hover:border-slate-300'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-xs font-bold text-slate-900">Warehouse Staff</span>
-                        <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
-                          regRole === 'Warehouse Staff' ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300'
-                        }`}>
-                          {regRole === 'Warehouse Staff' && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-slate-500 leading-tight">
-                        Perform transfers, picking, shelving, and counting
-                      </p>
-                    </div>
+                    <p className="text-[10.5px] text-slate-600 leading-tight mt-0.5">
+                      Full administrative access to manage warehouses, suppliers, receipts, deliveries, and provision staff.
+                    </p>
+                    <p className="text-[9.5px] text-slate-500 mt-1 italic">
+                      Note: Warehouse Staff accounts are created directly by Managers inside the Staff Management portal.
+                    </p>
                   </div>
                 </div>
 
@@ -626,7 +582,7 @@ export const AuthView: React.FC = () => {
                   type="submit"
                   className="w-full py-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 active:from-sky-700 active:to-blue-800 text-white rounded-lg text-xs font-bold shadow-md shadow-sky-500/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                 >
-                  Create Account as {regRole}
+                  Create Inventory Manager Account
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </form>

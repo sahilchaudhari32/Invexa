@@ -83,8 +83,7 @@ async function handleSignup(req, res, next) {
     const assignedLoginId = (loginId || userEmail.split('@')[0]).trim();
     const passwordHash = await hashPassword(userPassword);
 
-    const userCount = await User.countDocuments();
-    const assignedRole = role || (userCount === 0 ? 'manager' : 'staff');
+    const assignedRole = 'manager';
 
     const user = await User.create({
       name: userName,
