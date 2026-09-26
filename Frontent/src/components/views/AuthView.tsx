@@ -32,8 +32,8 @@ export const AuthView: React.FC = () => {
   }, [activeView]);
 
   // Login State
-  const [loginId, setLoginId] = useState('alex.rivera');
-  const [loginPassword, setLoginPassword] = useState('Admin@123');
+  const [loginId, setLoginId] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
 
