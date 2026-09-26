@@ -4,7 +4,7 @@ import { Receipt, ReceiptItem } from '../../types';
 import {
   ArrowDownLeft,
   PlusCircle,
-  Table,
+  Table as TableIcon,
   Kanban,
   Search,
   CheckCircle2,
@@ -14,9 +14,12 @@ import {
   X,
   Building2,
   Trash2,
-  ArrowRight
+  ArrowRight,
+  Eye,
+  FileSpreadsheet
 } from 'lucide-react';
 import { CustomSelect } from '../common/CustomSelect';
+import { Badge, Button, Card, Table, TableHeader, TableBody, TableHead, TableRow, TableCell, Input } from '../ui';
 
 export const ReceiptsView: React.FC = () => {
   const {
@@ -329,7 +332,7 @@ export const ReceiptsView: React.FC = () => {
                 viewMode === 'list' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
               }`}
             >
-              <Table className="w-3.5 h-3.5 inline mr-1" />
+              <TableIcon className="w-3.5 h-3.5 inline mr-1" />
               List
             </button>
             <button
@@ -343,15 +346,15 @@ export const ReceiptsView: React.FC = () => {
             </button>
           </div>
 
-          <button onClick={openNewWizard} className="btn btn-primary text-xs">
+          <Button onClick={openNewWizard} variant="default" size="sm" className="h-9">
             <PlusCircle className="w-4 h-4" />
             <span>+ New Receipt</span>
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Filter Bar */}
-      <div className="card p-4">
+      <Card className="p-4 shadow-2xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -360,7 +363,7 @@ export const ReceiptsView: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by Reference (WH/IN/0001), Supplier, Warehouse..."
-              className="w-full pl-9 pr-4 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 bg-slate-50 focus:bg-white"
+              className="w-full pl-9 pr-4 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 bg-slate-50 focus:bg-white transition-all font-sans"
             />
           </div>
 
@@ -379,99 +382,120 @@ export const ReceiptsView: React.FC = () => {
             />
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* View Rendering (List or Kanban) */}
       {viewMode === 'list' ? (
-        <div className="card overflow-hidden border border-slate-200 shadow-sm">
-          <div className="table-responsive">
-            <table className="stock-table min-w-[1050px]">
-              <thead>
-                <tr>
-                  <th className="w-32">Receipt Ref ID</th>
-                  <th className="min-w-[160px]">Supplier / Vendor</th>
-                  <th className="min-w-[200px]">Line Items</th>
-                  <th className="w-28 text-center">Expected Qty</th>
-                  <th className="w-36">Destination WH</th>
-                  <th className="w-32">Scheduled Date</th>
-                  <th className="w-28">Operator</th>
-                  <th className="w-28 text-center">Status</th>
-                  <th className="w-36 text-right pr-6">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredReceipts.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="text-center py-10 text-slate-400 text-xs">
-                      No receipts found matching filter criteria.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredReceipts.map(r => {
-                    const totalQty = (r.items || []).reduce((sum, i) => sum + Number(i.expectedQty || 0), 0);
-                    return (
-                      <tr key={r.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="whitespace-nowrap">
-                          <button
-                            onClick={() => setSelectedReceiptId(r.id)}
-                            className="font-mono text-xs font-bold text-blue-600 hover:underline"
+        <Table className="min-w-[1100px]">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-36">Receipt Ref ID</TableHead>
+              <TableHead className="min-w-[170px]">Supplier / Vendor</TableHead>
+              <TableHead className="min-w-[220px]">Line Items</TableHead>
+              <TableHead className="w-32 text-center">Expected Qty</TableHead>
+              <TableHead className="w-40">Destination WH</TableHead>
+              <TableHead className="w-36">Scheduled Date</TableHead>
+              <TableHead className="w-32">Operator</TableHead>
+              <TableHead className="w-28 text-center">Status</TableHead>
+              <TableHead className="w-44 text-right pr-6">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredReceipts.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9} className="text-center py-12 text-slate-400 text-xs">
+                  No receipts found matching filter criteria.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredReceipts.map(r => {
+                const totalQty = (r.items || []).reduce((sum, i) => sum + Number(i.expectedQty || 0), 0);
+                const statusVariant =
+                  r.status === 'Done'
+                    ? 'success'
+                    : r.status === 'Ready'
+                    ? 'info'
+                    : r.status === 'Waiting'
+                    ? 'warning'
+                    : 'draft';
+
+                return (
+                  <TableRow key={r.id} className="group hover:bg-blue-50/20">
+                    <TableCell className="whitespace-nowrap">
+                      <button
+                        onClick={() => setSelectedReceiptId(r.id)}
+                        className="inline-flex items-center gap-1.5 font-mono text-[11px] font-bold text-blue-700 bg-blue-50/80 hover:bg-blue-100 px-2.5 py-1 rounded-lg border border-blue-200/60 shadow-2xs transition-all hover:scale-[1.02] cursor-pointer"
+                      >
+                        <span>{r.reference}</span>
+                      </button>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-bold text-xs text-slate-900 block">{r.supplier}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-xs text-slate-700 block line-clamp-1">
+                        {(r.items || []).map(i => i.productName).join(', ')}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
+                        {(r.items || []).length} item line(s)
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-center whitespace-nowrap">
+                      <span className="inline-flex items-center justify-center font-bold text-xs text-slate-800 font-mono bg-slate-100/90 px-2.5 py-1 rounded-lg border border-slate-200/60">
+                        {totalQty} <span className="text-[10px] text-slate-400 font-normal ml-1">units</span>
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-xs text-slate-700 font-medium whitespace-nowrap">
+                      {r.warehouseName}
+                    </TableCell>
+                    <TableCell className="text-xs text-slate-600 font-mono whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <span>{r.scheduledDate}</span>
+                        {r.isLate && r.status !== 'Done' && (
+                          <Badge variant="destructive" size="sm">
+                            Late
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs text-slate-600 whitespace-nowrap font-medium">
+                      {r.responsible}
+                    </TableCell>
+                    <TableCell className="text-center whitespace-nowrap">
+                      <Badge variant={statusVariant} dot={true} size="md">
+                        {r.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right pr-6 whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => setSelectedReceiptId(r.id)}
+                          className="h-7 px-2.5 text-xs text-slate-700 font-semibold hover:border-blue-300 hover:text-blue-700"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-slate-400" />
+                          <span>Details</span>
+                        </Button>
+                        {r.status !== 'Done' && (
+                          <Button
+                            variant="success"
+                            size="sm"
+                            onClick={() => validateReceipt(r.id)}
+                            className="h-7 px-3 text-xs shadow-xs font-bold"
                           >
-                            {r.reference}
-                          </button>
-                        </td>
-                        <td>
-                          <span className="font-bold text-xs text-slate-900 block">{r.supplier}</span>
-                        </td>
-                        <td>
-                          <span className="text-xs text-slate-700 block line-clamp-1">{(r.items || []).map(i => i.productName).join(', ')}</span>
-                          <span className="text-[10px] text-slate-400 font-mono block">{(r.items || []).length} line(s)</span>
-                        </td>
-                        <td className="text-center whitespace-nowrap">
-                          <span className="font-bold text-xs text-slate-900">{totalQty} units</span>
-                        </td>
-                        <td className="text-xs text-slate-700 font-medium whitespace-nowrap">{r.warehouseName}</td>
-                        <td className="text-xs text-slate-600 font-mono whitespace-nowrap">
-                          {r.scheduledDate}
-                          {r.isLate && r.status !== 'Done' && (
-                            <span className="ml-1 text-[10px] text-red-600 font-bold bg-red-50 px-1.5 py-0.2 rounded">Late</span>
-                          )}
-                        </td>
-                        <td className="text-xs text-slate-500 whitespace-nowrap">{r.responsible}</td>
-                        <td className="text-center whitespace-nowrap">
-                          <span className={`badge ${
-                            r.status === 'Done' ? 'badge-done' :
-                            r.status === 'Ready' ? 'badge-ready' :
-                            r.status === 'Waiting' ? 'badge-waiting' : 'badge-draft'
-                          }`}>
-                            {r.status}
-                          </span>
-                        </td>
-                        <td className="text-right pr-6 whitespace-nowrap">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              onClick={() => setSelectedReceiptId(r.id)}
-                              className="btn btn-secondary btn-sm text-xs px-2.5 py-1"
-                            >
-                              Details
-                            </button>
-                            {r.status !== 'Done' && (
-                              <button
-                                onClick={() => validateReceipt(r.id)}
-                                className="btn btn-success btn-sm text-xs px-2.5 py-1"
-                              >
-                                Validate
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Validate</span>
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
       ) : (
         /* Kanban View */
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
