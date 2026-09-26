@@ -34,6 +34,32 @@ import {
   ChevronDown
 } from 'lucide-react';
 
+const getInitials = (name: string): string => {
+  if (!name) return 'OP';
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 1) {
+    return parts[0].substring(0, 2).toUpperCase();
+  }
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
+const getAvatarGradient = (name: string): string => {
+  const gradients = [
+    'from-blue-600 to-indigo-700 text-white',
+    'from-indigo-600 to-purple-700 text-white',
+    'from-sky-500 to-blue-700 text-white',
+    'from-emerald-600 to-teal-700 text-white',
+    'from-violet-600 to-fuchsia-700 text-white',
+    'from-amber-500 to-orange-600 text-white',
+    'from-rose-500 to-pink-700 text-white'
+  ];
+  let hash = 0;
+  for (let i = 0; i < (name || '').length; i++) {
+    hash = (name || '').charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return gradients[Math.abs(hash) % gradients.length];
+};
+
 export const StaffManagementView: React.FC = () => {
   const {
     staffMembers,
@@ -462,11 +488,13 @@ export const StaffManagementView: React.FC = () => {
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      <img
-                        src={staff.avatar}
-                        alt={staff.fullName}
-                        className="w-12 h-12 rounded-2xl object-cover ring-2 ring-slate-100 shadow-2xs"
-                      />
+                      <div
+                        className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${getAvatarGradient(
+                          staff.fullName
+                        )} flex items-center justify-center font-extrabold text-sm tracking-wide shadow-2xs ring-2 ring-slate-100 select-none`}
+                      >
+                        {getInitials(staff.fullName)}
+                      </div>
                       <span
                         className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${
                           staff.status === 'Active'
@@ -625,11 +653,13 @@ export const StaffManagementView: React.FC = () => {
                   <tr key={staff.id} className="hover:bg-slate-50/70 transition-colors">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={staff.avatar}
-                          alt={staff.fullName}
-                          className="w-9 h-9 rounded-xl object-cover ring-1 ring-slate-200 shrink-0"
-                        />
+                        <div
+                          className={`w-9 h-9 rounded-xl bg-gradient-to-br ${getAvatarGradient(
+                            staff.fullName
+                          )} flex items-center justify-center font-bold text-xs shadow-2xs ring-1 ring-slate-200 shrink-0 select-none`}
+                        >
+                          {getInitials(staff.fullName)}
+                        </div>
                         <div>
                           <span className="font-bold text-slate-900 block">{staff.fullName}</span>
                           <span className="text-[10px] text-slate-400 font-mono">@{staff.loginId}</span>
@@ -890,11 +920,13 @@ export const StaffManagementView: React.FC = () => {
 
             <div className="p-5 space-y-4">
               <div className="flex items-center gap-4">
-                <img
-                  src={viewingStaff.avatar}
-                  alt={viewingStaff.fullName}
-                  className="w-16 h-16 rounded-2xl object-cover ring-2 ring-blue-100 shadow-md"
-                />
+                <div
+                  className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${getAvatarGradient(
+                    viewingStaff.fullName
+                  )} flex items-center justify-center font-extrabold text-xl shadow-md ring-2 ring-blue-100 select-none`}
+                >
+                  {getInitials(viewingStaff.fullName)}
+                </div>
                 <div>
                   <h3 className="text-lg font-extrabold text-slate-900">{viewingStaff.fullName}</h3>
                   <span className="text-xs font-mono text-blue-600 font-bold block">
